@@ -30,6 +30,8 @@ import java.util.StringTokenizer;
 import myra.Attribute;
 import myra.Dataset;
 import myra.Attribute.Type;
+import myra.rule.pittsburgh.monotonicity.Constraint;
+import myra.rule.pittsburgh.monotonicity.Constraint.Direction;
 
 /**
  * Reads the dataset information from a ARFF file.
@@ -66,6 +68,15 @@ public class ARFFReader {
      * Constant representing a real value attribute.
      */
     private static final String REAL = "real";
+    
+    /**
+     * Constant representing a constraint
+     */
+    private static final String CONSTRAINT = "@constraint";
+    
+    private static final String INCREASING = "increasing";
+    
+    private static final String DECREASING = "decreasing";
 
     /**
      * Reads the specified file.
@@ -141,7 +152,9 @@ public class ARFFReader {
 		    }
 
 		    processAttribute(dataset, split);
-		} else if (split[0].startsWith(DATA)) {
+		} else if(split[0].startsWith(CONSTRAINT)) {
+			processConstraint(dataset, split);
+	    } else if (split[0].startsWith(DATA)) {
 		    dataSection = true;
 		} else if (split[0].startsWith(RELATION) && split.length == 2) {
 		    dataset.setName(split[1]);
@@ -277,6 +290,42 @@ public class ARFFReader {
 			+ components[1]);
 	    }
 	}
+    }
+    
+    /**
+     * Parses a constraint
+     * 
+     * @param dataset
+     * 			data set being read
+     * @param components
+     * 			components of the constraint being parsed
+     */
+    private void processConstraint(Dataset dataset, String[] components) {
+    	if(components.length != 3) {
+    		throw new IllegalArgumentException("Unsupported constraint, expected 3 tokens found: "
+    				+ components.length);
+    	}
+    	
+    	int index = -1;
+    	Direction direction;
+    	
+    	try {
+    		index = dataset.findAttribute(components[1]).getIndex();
+    	} catch(IllegalArgumentException e) {
+    		throw new IllegalArgumentException("Attribute not found while constructing constraint: " 
+    				+ components[1] );
+    	}
+    	
+    	if(components[2].contains(INCREASING)) {
+    		direction = Direction.INCREASING;
+    	} else if(components[2].contains(DECREASING)) {
+    		direction = Direction.DECREASING;
+    	} else {
+    		throw new IllegalArgumentException("Unsupported constraint direction: " 
+    				+ components[2]);
+    	}
+    	
+    	dataset.addConstraint(new Constraint(index,direction));
     }
 
     /**

@@ -26,6 +26,8 @@ import static myra.Config.CONFIG;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import myra.rule.pittsburgh.monotonicity.Constraint;
+
 /**
  * This class represents the data.
  * 
@@ -66,6 +68,11 @@ public final class Dataset {
      * The attributes of the dataset.
      */
     private Attribute[] attributes;
+    
+    /**
+     * Data set constraint
+     */
+    private Constraint[] constraints;
 
     /**
      * The instances of the dataset, represented as an array. Each instance has
@@ -85,6 +92,7 @@ public final class Dataset {
 	attributes = new Attribute[0];
 	instances = new double[0];
 	distribution = new double[0];
+	constraints = new Constraint[0];
     }
 
     /**
@@ -692,5 +700,42 @@ public final class Dataset {
 		}
 	    }
 	}
+    }
+    
+    /**
+     * Adds a constraint to the list of constraints
+     * 
+     * @param constraint
+     * 			the constraint to add
+     */
+    public void addConstraint(Constraint constraint)
+    {
+    	if (instances.length > 0) {
+    	    throw new IllegalStateException("Dataset metadata cannot"
+    		    + " change after adding instances.");
+    	}
+
+    	int index = constraints.length;
+    	constraints = Arrays.copyOf(constraints, constraints.length + 1);
+
+    	constraints[index] = constraint;
+    }
+    
+    /**
+     * Sets the constraint list
+     * @param constraints
+     */
+    public void setConstraints(Constraint[] constraints) {
+    	this.constraints = constraints;
+    }
+    
+    /**
+     * Gets the list of constraints for the data set
+     * 
+     * @return an array of the constraints
+     */
+    public Constraint[] getConstraints()
+    {
+    	return constraints;
     }
 }

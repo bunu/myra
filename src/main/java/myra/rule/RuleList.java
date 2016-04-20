@@ -21,7 +21,9 @@ package myra.rule;
 
 import static myra.Dataset.NOT_COVERED;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import myra.Dataset;
 import myra.Model;
@@ -67,6 +69,21 @@ public class RuleList implements Model, Comparable<RuleList> {
     public void add(Rule rule) {
 	rules = Arrays.copyOf(rules, rules.length + 1);
 	rules[rules.length - 1] = rule;
+    }
+    
+    /**
+     * Removes a rule from the list of rules and compacts the rule list
+     * 
+     * @param index
+     * 				index of the rule to remove
+     */
+    public void remove(int index) {
+    if(index < rules.length) {
+    	rules[index] = null;
+    	ArrayList<Rule> list = new ArrayList<Rule>(Arrays.asList(rules));
+        list.removeAll(Collections.singleton(null));
+        rules = list.toArray(new Rule[list.size()]);
+    }
     }
 
     /**
