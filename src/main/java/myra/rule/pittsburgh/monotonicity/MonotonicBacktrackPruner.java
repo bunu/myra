@@ -19,12 +19,7 @@
 
 package myra.rule.pittsburgh.monotonicity;
 
-import static myra.Config.CONFIG;
-import static myra.Dataset.NOT_COVERED;
-import static myra.rule.Assignator.ASSIGNATOR;
-import static myra.rule.ListMeasure.DEFAULT_MEASURE;
 import myra.Dataset;
-import myra.Dataset.Instance;
 import myra.rule.Rule;
 import myra.rule.RuleList;
 
@@ -37,10 +32,10 @@ public class MonotonicBacktrackPruner extends MonotonicPruner {
 	@Override
 	public void prune(Dataset dataset, RuleList list) {		
 		
+		int termsRemoved = 0;
+		
 		System.out.println("Pre-prune stats:\nRules: " + list.size());
-		
-		
-		
+				
 		while(MonotonicFunctions.calculateMonotonicityIndex(list, dataset) < 1.0) {
 			
 			if(list.rules().length > 0) {
@@ -48,39 +43,17 @@ public class MonotonicBacktrackPruner extends MonotonicPruner {
 				if(r.terms().length > 0) {
 						r.terms()[r.terms().length-1].setEnabeld(false);
 						r.compact();
+						termsRemoved++;
 				} else {
 					list.remove(list.rules().length -1);
 				}
 			} else {
 				break;
 			}
-		}
-				
+		}				
 		// Tidy up the rule after pruning by adding the default rule
-		if (!list.hasDefault()) {
-			Instance[] instances = Instance.newArray(dataset.size());
-			for(Rule r : list.rules()) {
-				r.apply(dataset, instances);
-			}
-			
-			boolean available = false;
-			
-			for(Instance i : instances) {
-				if(i.flag == NOT_COVERED) {
-					available = true;
-					break;
-				}
-			}
-			
-		    if (available == false) {
-		    	Instance.markAll(instances, NOT_COVERED);
-		    }
-
-		    Rule rule = new Rule();
-		    rule.apply(dataset, instances);
-		    CONFIG.get(ASSIGNATOR).assign(rule);
-		    list.add(rule);
-		}
-		list.setQuality(CONFIG.get(DEFAULT_MEASURE).evaluate(dataset, list));
+		fixPrunedList(dataset, list);
+		
+		System.out.println("Post-prune stats:\nRules: " + list.size() + "\nTerms Removed: " + termsRemoved);
 	}
 }

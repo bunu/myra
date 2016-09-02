@@ -216,15 +216,15 @@ public class cAntMinerPBMC extends Classifier{
 					     "set the strength of the constraint ratio",
 					     "ratio"));
 	
-	
-		// monotonic pruner
+		// Monotonic pruner
 		Option<MonotonicPruner> pruner =
 			new Option<MonotonicPruner>(MONOTONIC_PRUNER,
 						 "mp",
 						 "specify the monotonic pruner",
 						 true,
 						 "pruner");
-		pruner.add("most_monotonic", new MostMonotonicPruner());
+		pruner.add("nmi_pruner", new NMIPruner());
+		pruner.add("nmi_fix_pruner", new NMIFixPruner());
 		pruner.add("bactrack_monotonic", CONFIG.get(MONOTONIC_PRUNER));
 		options.add(pruner);
 
