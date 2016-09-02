@@ -42,16 +42,14 @@ public class NMICalc {
 	try {
 		ARFFReader reader = new ARFFReader();
 		Dataset data = reader.read(filename);		
-		Constraint[] constraints = data.getConstraints();
-		System.out.println("All Constraints: " + MonotonicFunctions.calculateDataMonotonicityIndex(data));
-		for(int i = 0; i < constraints.length; i++) {
+		for(int i = 0; i < data.attributes().length; i++) {
 			Constraint[] tempc = new Constraint[1];
 			data.setConstraints(tempc);
 			
-			tempc[0] = new Constraint(constraints[i].getAttributeIndex(),Direction.INCREASING);
+			tempc[0] = new Constraint(data.attributes()[i].getIndex(),Direction.INCREASING);
 			System.out.println(data.getAttribute(tempc[0].getAttributeIndex()).getName() + " " + tempc[0].getConstraintDirection() + ": " + MonotonicFunctions.calculateDataMonotonicityIndex(data));
 		
-			tempc[0] = new Constraint(constraints[i].getAttributeIndex(),Direction.DECREASING);
+			tempc[0] = new Constraint(data.attributes()[i].getIndex(),Direction.DECREASING);
 			System.out.println(data.getAttribute(tempc[0].getAttributeIndex()).getName() + " " + tempc[0].getConstraintDirection() + ": " + MonotonicFunctions.calculateDataMonotonicityIndex(data));
 		}
 	} catch (Exception e) {
