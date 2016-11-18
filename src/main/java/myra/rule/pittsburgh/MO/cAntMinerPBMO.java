@@ -1,5 +1,5 @@
 /*
- * cAntMinerPBMC.java
+ * cAntMinerPBMO.java
  * (this file is part of MYRA)
  * 
  * Copyright 2008-2015 Fernando Esteban Barril Otero
@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package myra.rule.pittsburgh.monotonicity;
+package myra.rule.pittsburgh.MO;
 
 import static myra.Config.CONFIG;
 import static myra.IterativeActivity.MAX_ITERATIONS;
@@ -31,19 +31,19 @@ import static myra.rule.Heuristic.DYNAMIC_HEURISTIC;
 import static myra.rule.ListMeasure.DEFAULT_MEASURE;
 import static myra.rule.Pruner.DEFAULT_PRUNER;
 import static myra.rule.RuleFunction.DEFAULT_FUNCTION;
-import static myra.rule.pittsburgh.monotonicity.FindMonotonicRuleListActivity.UNCOVERED;
-import static myra.rule.pittsburgh.LevelPheromonePolicy.EVAPORATION_FACTOR;
-import static myra.rule.pittsburgh.LevelPheromonePolicy.P_BEST;
+import static myra.rule.pittsburgh.MO.FindMOActivity.UNCOVERED;
+import static myra.rule.pittsburgh.MO.MOPheromonePolicy.EVAPORATION_FACTOR;
+import static myra.rule.pittsburgh.MO.MOPheromonePolicy.P_BEST;
 import static myra.rule.pittsburgh.monotonicity.Constraint.CONSTRAINT_WEIGHTING;
 import static myra.rule.pittsburgh.monotonicity.MonotonicPruner.MONOTONIC_PRUNER;
+import static myra.rule.pittsburgh.MO.FindMOActivity.GLOBALNONDOMSET;
+import static myra.rule.pittsburgh.MO.WeightFactory.WEIGHT_FACTORY;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import myra.Accuracy;
 import myra.Classifier;
 import myra.Dataset;
-import myra.Measure;
 import myra.Model;
 import myra.Option;
 import myra.Scheduler;
@@ -60,17 +60,22 @@ import myra.rule.Graph;
 import myra.rule.Heuristic;
 import myra.rule.ListMeasure;
 import myra.rule.MajorityAssignator;
-import myra.rule.Rule;
-import myra.rule.Rule.Term;
+import myra.rule.PessimisticAccuracy;
+import myra.rule.RuleFunction;
 import myra.rule.RuleList;
-import myra.util.ARFFReader;
-import myra.util.Logger;
+import myra.rule.function.SensitivitySpecificity;
+import myra.rule.pittsburgh.monotonicity.MIListMeasure;
+import myra.rule.pittsburgh.monotonicity.MIRuleFunction;
+import myra.rule.pittsburgh.monotonicity.MonotonicBacktrackPruner;
+import myra.rule.pittsburgh.monotonicity.MonotonicPruner;
+import myra.rule.pittsburgh.monotonicity.NMIFixPruner;
+import myra.rule.pittsburgh.monotonicity.NMIPruner;
 
 /**
  * @author James Brookhouse
  *
  */
-public class cAntMinerPBMC extends Classifier{
+public class cAntMinerPBMO extends Classifier{
 	
 	@Override
 	protected void defaults() {
@@ -81,8 +86,8 @@ public class cAntMinerPBMC extends Classifier{
 		CONFIG.set(P_BEST, 0.05);
 		CONFIG.set(IntervalBuilder.MAXIMUM_LIMIT, 25);
 		CONFIG.set(DEFAULT_PRUNER, new BacktrackPruner());
-		CONFIG.set(DEFAULT_FUNCTION, new MonotonicityRuleFunction());
-		CONFIG.set(DEFAULT_MEASURE, new MonotonicListMeasure());
+		CONFIG.set(DEFAULT_FUNCTION, new MORuleFunction(new RuleFunction[]{new MIRuleFunction(),new SensitivitySpecificity()}));
+		CONFIG.set(DEFAULT_MEASURE, new MOListMeasure(new ListMeasure[]{new MIListMeasure(),new PessimisticAccuracy()}));
 
 		// default configuration values
 		CONFIG.set(COLONY_SIZE, 5);
@@ -100,90 +105,35 @@ public class cAntMinerPBMC extends Classifier{
 	
 	@Override
     public String description() {
-		return "Pittsburgh-based cAnt-Miner with monotonicity constraints";
+		return "MO Pittsburgh-based cAnt-Miner with monotonicity constraints";
     }
 
 	@Override
 	protected Model train(Dataset dataset) {
-		FindMonotonicRuleListActivity activity =
-				new FindMonotonicRuleListActivity(new Graph(dataset), dataset);
-
-			Scheduler<RuleList> scheduler = Scheduler.newInstance(1);
-			scheduler.setActivity(activity);
-			scheduler.run();
-			RuleList list = activity.getBest();
-
-			// Now work out which is the best pruner on the training set
-			RuleList bestList = null;
-			bestList = testPruner(cloneList(list), new MonotonicBacktrackPruner(), "NP");
-			RuleList mvp = testPruner(cloneList(list), new NMIPruner(), "MVP");
-			if(mvp.getQuality() > bestList.getQuality()) {
-				bestList = mvp;
-			}
-			RuleList bfp = testPruner(cloneList(list), new NMIFixPruner(), "BFP");
-			if(bfp.getQuality() > bestList.getQuality()) {
-				bestList = bfp;
-			}
-
-			return bestList;
-	}
-	
-	private RuleList cloneList(RuleList list) {
-		RuleList newList = new RuleList();
-		Rule[] rules = list.rules();
-		for(Rule r : rules) {
-			Rule newRule = new Rule();
-			Term[] terms = r.terms();
-			for(Term t: terms) {
-				newRule.add(t);
-			}
-			newRule.setConsequent(r.getConsequent());
-			newList.add(newRule);
-		}
-		return newList;
-	}
-	
-	private RuleList testPruner(RuleList list, MonotonicPruner pruner, String prunerName) {
 		
-		try { 
-			if (CONFIG.isPresent(TEST_FILE)) {
-				ARFFReader reader = new ARFFReader();
-				Dataset dataset = reader.read(CONFIG.get(TRAINING_FILE));
-	
-				Logger.log("%n=== Evaluation ===%n%n");
+		CONFIG.set(GLOBALNONDOMSET, new MORuleList[0]);
+		CONFIG.set(WEIGHT_FACTORY, new WeightFactory());
+		
+		FindMOActivity activity = new FindMOActivity(new Graph[]{new Graph(dataset),new Graph(dataset)}, dataset);
 
-				pruner.prune(dataset, list);
-				Accuracy measure = new Accuracy();
-				double trainAccuracy = measure.evaluate(dataset, list);
-				list.setQuality(trainAccuracy);
-				dataset = reader.read(CONFIG.get(TRAINING_FILE));
-				double testAccuracy = measure.evaluate(dataset, list);
-				
-				Logger.log("Pruner: " + prunerName + " Classification accuracy on training set: %f (%3.2f%%)%n",
-						trainAccuracy,
-						trainAccuracy * 100);
-				Logger.log("Pruner: " + prunerName + " Classification accuracy on test set: %f (%3.2f%%)%n",
-						testAccuracy,
-						testAccuracy * 100);
-
-				int[][] matrix = Measure.fill(dataset, list);
-
-				Logger.log("Correctly classified instances: %d (%3.2f%%)%n",
-						dataset.size() - Measure.errors(matrix),
-						((dataset.size() - Measure.errors(matrix))
-								/ (double) dataset.size()) * 100);
-
-				Logger.log("Incorrectly classified instances: %d (%3.2f%%)\n",
-						Measure.errors(matrix),
-						(Measure.errors(matrix) / (double) dataset.size())
-						* 100);
-
-				logConfusionMatrix(dataset, matrix);
-		    	}
-		} catch (Exception e) {
+		Scheduler<RuleList> scheduler = Scheduler.newInstance(CONFIG.get(COLONY_SIZE));
+		scheduler.setActivity(activity);
+		scheduler.run();
 			
+		MORuleList[] lists = CONFIG.get(GLOBALNONDOMSET);
+		System.out.println("Number of Rules in Global Non-Dominated set: " + lists.length);
+		RuleList globalBest = null;
+		for(MORuleList list : lists) {
+			CONFIG.get(MONOTONIC_PRUNER).prune(dataset, list.getRuleList());
+			if(globalBest == null) {
+				globalBest = list.getRuleList();
+			}
+			else if(list.getRuleList().getQuality() > globalBest.getQuality() ){
+				globalBest = list.getRuleList();
+			}
 		}
-		return list;
+
+		return globalBest;
 	}
 	
     @Override
@@ -315,7 +265,7 @@ public class cAntMinerPBMC extends Classifier{
      *             If an error occurs &mdash; e.g., I/O error.
      */
     public static void main(String[] args) throws Exception {
-    	cAntMinerPBMC algorithm = new cAntMinerPBMC();
+    	cAntMinerPBMO algorithm = new cAntMinerPBMO();
     	algorithm.run(args);
     }
 }

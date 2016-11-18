@@ -42,7 +42,7 @@ public abstract class MonotonicPruner {
 	
 	/**
 	 * Method tidies up a list after pruning ensuring the default rule is 
-	 * correctly applied to the end of the list
+	 * correctly applied to the end of the list and the list quality is set correctly.
 	 * @param dataset
 	 * @param list
 	 */
