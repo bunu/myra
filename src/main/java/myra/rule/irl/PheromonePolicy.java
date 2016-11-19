@@ -29,34 +29,43 @@ import myra.rule.Rule;
  * 
  * <ul>
  * <li>initialisation</li>
- * <li>update (including evaporation)</li>
+ * <li>update (may include evaporation)</li>
+ * <li>finaliseUpdate (evaporation in multi-rule update policies) </li>
  * </ul>
  * 
  * @author Fernando Esteban Barril Otero
  */
 public interface PheromonePolicy {
-    /**
-     * The config key for the default pheromone policy instance.
-     */
-    public static final ConfigKey<PheromonePolicy> DEFAULT_POLICY =
-	    new ConfigKey<PheromonePolicy>();
+	/**
+	 * The config key for the default pheromone policy instance.
+	 */
+	public static final ConfigKey<PheromonePolicy> DEFAULT_POLICY = new ConfigKey<PheromonePolicy>();
 
-    /**
-     * Initialises the pheromone values of the specified graph.
-     * 
-     * @param graph
-     *            the construction graph to be initialised.
-     */
-    public void initialise(Graph graph);
+	/**
+	 * Initialises the pheromone values of the specified graph.
+	 * 
+	 * @param graph
+	 *            the construction graph to be initialised.
+	 */
+	public void initialise(Graph graph);
 
-    /**
-     * Updates the pheromone values, increasing the pheromone according to the
-     * <code>rule</code> quality.
-     * 
-     * @param graph
-     *            the construction graph.
-     * @param rule
-     *            the rule to guide the update.
-     */
-    public void update(Graph graph, Rule rule);
+	/**
+	 * Updates the pheromone values, increasing the pheromone according to the
+	 * <code>rule</code> quality.
+	 * 
+	 * @param graph
+	 *            the construction graph.
+	 * @param rule
+	 *            the rule to guide the update.
+	 */
+	public void update(Graph graph, Rule rule);
+
+	/**
+	 * Finalises the pheromone update mechanism, used in multi-rule update 
+	 * policies to implement evaporation.
+	 * 
+	 * @param graph
+	 *            the construction graph
+	 */
+	public void finaliseUpdate(Graph graph);
 }

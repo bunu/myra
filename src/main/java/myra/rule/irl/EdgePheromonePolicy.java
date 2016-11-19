@@ -37,78 +37,90 @@ import myra.rule.Rule.Term;
  * 
  * @author Fernando Esteban Barril Otero
  */
-public final class EdgePheromonePolicy implements PheromonePolicy {
-    /**
-     * Initialises the pheromone values of the specified graph.
-     * 
-     * @param graph
-     *            the construction graph to be initialised.
-     */
-    public void initialise(Graph graph) {
-	Entry[][] matrix = graph.matrix();
+public class EdgePheromonePolicy implements PheromonePolicy {
+	/**
+	 * Initialises the pheromone values of the specified graph.
+	 * 
+	 * @param graph
+	 *            the construction graph to be initialised.
+	 */
+	public void initialise(Graph graph) {
+		Entry[][] matrix = graph.matrix();
 
-	for (int i = 0; i < matrix.length; i++) {
-	    int count = 0;
+		for (int i = 0; i < matrix.length; i++) {
+			int count = 0;
 
-	    for (int j = 0; j < matrix[i].length; j++) {
-		if (matrix[i][j] != null) {
-		    count++;
+			for (int j = 0; j < matrix[i].length; j++) {
+				if (matrix[i][j] != null) {
+					count++;
+				}
+			}
+
+			double initial = 1.0 / count;
+
+			for (int j = 0; j < matrix[i].length; j++) {
+				if (matrix[i][j] != null) {
+					matrix[i][j] = new Entry(initial, initial);
+				}
+			}
 		}
-	    }
-
-	    double initial = 1.0 / count;
-
-	    for (int j = 0; j < matrix[i].length; j++) {
-		if (matrix[i][j] != null) {
-		    matrix[i][j] = new Entry(initial, initial);
-		}
-	    }
-	}
-    }
-
-    /**
-     * Updates the pheromone values, increasing the pheromone according to the
-     * <code>rule</code> quality. Evaporation is also performed by normalising
-     * the pheromone values.
-     * 
-     * @param graph
-     *            the construction graph.
-     * @param rule
-     *            the rule to guide the update.
-     */
-    public void update(Graph graph, Rule rule) {
-	Term[] terms = rule.terms();
-	Entry[][] matrix = graph.matrix();
-
-	final double q = rule.getQuality();
-	int from = START_INDEX;
-
-	for (int i = 0; i < terms.length; i++) {
-	    Entry entry = matrix[from][terms[i].index()];
-	    double value = entry.value(0);
-	    entry.set(0, value + (value * q));
-
-	    from = terms[i].index();
 	}
 
-	// normalises the pheromone values (it has the effect of
-	// evaporation for edges that have not being updated)
+	/**
+	 * Updates the pheromone values, increasing the pheromone according to the
+	 * <code>rule</code> quality. Evaporation is also performed by normalising
+	 * the pheromone values.
+	 * 
+	 * @param graph
+	 *            the construction graph.
+	 * @param rule
+	 *            the rule to guide the update.
+	 */
+	public void update(Graph graph, Rule rule) {
+		Term[] terms = rule.terms();
+		Entry[][] matrix = graph.matrix();
 
-	for (int i = 0; i < matrix.length; i++) {
-	    double total = 0.0;
+		final double q = rule.getQuality();
+		int from = START_INDEX;
 
-	    for (int j = 0; j < matrix[i].length; j++) {
-		if (matrix[i][j] != null) {
-		    total += matrix[i][j].value(0);
+		for (int i = 0; i < terms.length; i++) {
+			Entry entry = matrix[from][terms[i].index()];
+			double value = entry.value(0);
+			entry.set(0, value + (value * q));
+
+			from = terms[i].index();
 		}
-	    }
 
-	    for (int j = 0; j < matrix[i].length; j++) {
-		if (matrix[i][j] != null) {
-		    double value = matrix[i][j].value(0);
-		    matrix[i][j].set(0, value / total);
-		}
-	    }
+		// normalises the pheromone values (it has the effect of
+		// evaporation for edges that have not being updated)
+		finaliseUpdate(graph);
 	}
-    }
+
+	/**
+	 * Performs evaporation by normalising the pheromone values, edges not
+	 * updated will have their value reduced.
+	 * 
+	 * @param graph
+	 *            the construction graph
+	 */
+	public void finaliseUpdate(Graph graph) {
+		Entry[][] matrix = graph.matrix();
+
+		for (int i = 0; i < matrix.length; i++) {
+			double total = 0.0;
+
+			for (int j = 0; j < matrix[i].length; j++) {
+				if (matrix[i][j] != null) {
+					total += matrix[i][j].value(0);
+				}
+			}
+
+			for (int j = 0; j < matrix[i].length; j++) {
+				if (matrix[i][j] != null) {
+					double value = matrix[i][j].value(0);
+					matrix[i][j].set(0, value / total);
+				}
+			}
+		}
+	}
 }
