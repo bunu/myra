@@ -38,54 +38,59 @@ import myra.rule.Rule.Term;
  * @author Fernando Esteban Barril Otero
  */
 public final class VertexPheromonePolicy implements PheromonePolicy {
-    /**
-     * Initialises the pheromone values of the specified graph.
-     * 
-     * @param graph
-     *            the construction graph to be initialised.
-     */
-    public void initialise(Graph graph) {
-	Entry[][] matrix = graph.matrix();
-	matrix[START_INDEX][0] = new Entry(0.0, 0.0);
-	double initial = 1.0 / graph.size();
+	/**
+	 * Initialises the pheromone values of the specified graph.
+	 * 
+	 * @param graph
+	 *            the construction graph to be initialised.
+	 */
+	public void initialise(Graph graph) {
+		Entry[][] matrix = graph.matrix();
+		matrix[START_INDEX][0] = new Entry(0.0, 0.0);
+		double initial = 1.0 / graph.size();
 
-	for (int i = 1; i < graph.size(); i++) {
-	    matrix[i][0] = new Entry(initial, initial);
-	}
-    }
-
-    /**
-     * Updates the pheromone values, increasing the pheromone according to the
-     * <code>rule</code> quality. Evaporation is also performed by normalising
-     * the pheromone values.
-     * 
-     * @param graph
-     *            the construction graph.
-     * @param rule
-     *            the rule to guide the update.
-     */
-    public void update(Graph graph, Rule rule) {
-	Term[] terms = rule.terms();
-	Entry[][] matrix = graph.matrix();
-	final double q = rule.getQuality();
-
-	for (int i = 0; i < terms.length; i++) {
-	    double value = matrix[terms[i].index()][0].value(0);
-	    matrix[terms[i].index()][0].set(0, value + (value * q));
+		for (int i = 1; i < graph.size(); i++) {
+			matrix[i][0] = new Entry(initial, initial);
+		}
 	}
 
-	// normilises the pheromone values (it has the effect of
-	// evaporation for vertices that have not being updated)
+	/**
+	 * Updates the pheromone values, increasing the pheromone according to the
+	 * <code>rule</code> quality. Evaporation is also performed by normalising
+	 * the pheromone values.
+	 * 
+	 * @param graph
+	 *            the construction graph.
+	 * @param rule
+	 *            the rule to guide the update.
+	 */
+	public void update(Graph graph, Rule rule) {
+		Term[] terms = rule.terms();
+		Entry[][] matrix = graph.matrix();
+		final double q = rule.getQuality();
 
-	double total = 0.0;
+		for (int i = 0; i < terms.length; i++) {
+			double value = matrix[terms[i].index()][0].value(0);
+			matrix[terms[i].index()][0].set(0, value + (value * q));
+		}
 
-	for (int i = 1; i < matrix.length; i++) {
-	    total += matrix[i][0].value(0);
+		// Normalises the pheromone values (it has the effect of
+		// evaporation for vertices that have not being updated)
+
+		double total = 0.0;
+
+		for (int i = 1; i < matrix.length; i++) {
+			total += matrix[i][0].value(0);
+		}
+
+		for (int i = 1; i < matrix.length; i++) {
+			double value = matrix[i][0].value(0);
+			matrix[i][0].set(0, value / total);
+		}
 	}
 
-	for (int i = 1; i < matrix.length; i++) {
-	    double value = matrix[i][0].value(0);
-	    matrix[i][0].set(0, value / total);
+	@Override
+	public void finaliseUpdate(Graph graph) {
+		// NOT USED
 	}
-    }
 }
