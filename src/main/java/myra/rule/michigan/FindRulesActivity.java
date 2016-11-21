@@ -137,7 +137,8 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 	@Override
 	public void update(Archive<Rule> archive) {
 		super.update(archive);
-		Rule[] rules = archive.topN(archive.size());
+		Rule[] rules = castObjectsToRules(archive.topN(archive.size()));
+
 		for (Rule rule : rules) {
 			if (rule.getQuality() >= CONFIG.get(UPDATE_THRESHOLD)) {
 				policy.update(graph, rule);
@@ -211,7 +212,7 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 	private Rule[] mergeRules(Archive<Rule> archive, Rule[] classifier) {
 		Rule[] rules = new Rule[archive.size() + classifier.length];
 		int i = 0;
-		for (Rule r : archive.topN(archive.size())) {
+		for (Rule r : castObjectsToRules(archive.topN(archive.size()))) {
 			rules[i] = r;
 			i++;
 		}
@@ -234,6 +235,22 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 				return -r1.compareTo(r2);
 			};
 		});
+	}
+
+	/**
+	 * Casts an array of objects to an array of rules, no protection provided if
+	 * the array is not an array of <code>Rule</code>s.
+	 * 
+	 * @param objects
+	 *            the objects array to cast
+	 * @return the array of <code>Rule</code>s
+	 */
+	private Rule[] castObjectsToRules(Object[] objects) {
+		Rule[] rules = new Rule[objects.length];
+		for (int i = 0; i < objects.length; i++) {
+			rules[i] = (Rule) objects[i];
+		}
+		return rules;
 	}
 
 	/**
@@ -304,7 +321,7 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 		public Rule bestAdjustedfitness() {
 			Rule best = null;
 			double bestscore = 0;
-			for (int i = 0; 0 < classes.length; i++) {
+			for (int i = 0; i < classes.length; i++) {
 				if (adjustedfitness(i) > bestscore) {
 					best = rule;
 					best.setConsequent(i);
