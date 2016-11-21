@@ -21,12 +21,17 @@ package myra.rule.michigan;
 
 import static myra.Config.CONFIG;
 import static myra.Dataset.NOT_COVERED;
+import static myra.Dataset.COVERED;
 import static myra.Dataset.RULE_COVERED;
 import static myra.rule.Heuristic.DEFAULT_HEURISTIC;
+import static myra.rule.Pruner.DEFAULT_PRUNER;
+import static myra.rule.RuleFunction.DEFAULT_FUNCTION;
 import static myra.rule.irl.PheromonePolicy.DEFAULT_POLICY;
+import static myra.rule.irl.RuleFactory.DEFAULT_FACTORY;
 import static myra.rule.michigan.cAntMinerM.CLASSIFIER;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import myra.Archive;
 import myra.Dataset;
@@ -36,16 +41,13 @@ import myra.Config.ConfigKey;
 import myra.rule.Graph;
 import myra.rule.Rule;
 import myra.rule.RuleList;
-import myra.rule.RuleSet;
 import myra.rule.Graph.Entry;
 import myra.rule.irl.PheromonePolicy;
 
 /**
  * The <code>FineRulesActivity</code> is responsible for evolving a single rule
- * using an ACO-based procedure.
- * 
- * The Activity uses the inherited create method for each rule however the
- * update mechanism is varied to include a niching operation.
+ * using an ACO-based procedure. Procedure also includes a niching process to
+ * update the classifier after rule construction
  * 
  * @author James Brookhouse
  *
@@ -98,8 +100,15 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 
 	@Override
 	public Rule create() {
-		// TODO Auto-generated method stub
-		return null;
+		// the instances array will be modified by the create and prune,
+		// so we need to work on a copy to avoid concurrency problems
+		Instance[] clone = Instance.copyOf(instances);
+
+		Rule rule = CONFIG.get(DEFAULT_FACTORY).create(graph, heuristic, dataset, clone);
+		CONFIG.get(DEFAULT_PRUNER).prune(dataset, rule, clone);
+		rule.setQuality(CONFIG.get(DEFAULT_FUNCTION).evaluate(rule));
+
+		return rule;
 	}
 
 	@Override
@@ -142,10 +151,51 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 		niching(archive);
 	}
 
+	/**
+	 * Used the archive populated in the last iteration and the rules in the
+	 * classifier to construct a new classifier based on the niching mechanism
+	 * defined in Olmo et al's GBAP
+	 * 
+	 * @param archive
+	 *            the archive generated in the last generation
+	 */
 	private void niching(Archive<Rule> archive) {
 		Rule[] rules = mergeRules(archive, CONFIG.get(CLASSIFIER).rules());
+		sort(rules);
 
-		// TODO: complete method body
+		// Now we have to allow the rules to claim the class tokens so we
+		// initialise the a few arrays and then iterate over both the sorted
+		// rule list and the classes in the dataset.
+		int[] classdistribution = new int[dataset.classLength()];
+		Instance[][] kinstances = new Instance[dataset.classLength()][];
+		NicheScore[] scores = new NicheScore[rules.length];
+		for (int i = 0; i < dataset.classLength(); i++) {
+			classdistribution[i] = dataset.distribution(i);
+			kinstances[i] = Instance.copyOf(instances);
+		}
+
+		for (int i = 0; i < rules.length; i++) {
+			scores[i] = new NicheScore(rules[i], classdistribution);
+			for (int j = 0; j < dataset.classLength(); j++) {
+				scores[i].ruleCovers(dataset, kinstances[j], j);
+			}
+		}
+
+		// Now construct the new classifier based on the niching results and
+		// update the rule quality as the consequent may have been altered.
+		//
+		// TODO: the quality shouldn't be updated here need to find a better
+		// place that doesn't involve updating it many times.
+		RuleList newClassifier = new RuleList();
+		for (NicheScore score : scores) {
+			if (score.bestAdjustedfitness() != null) {
+				Rule r = score.bestAdjustedfitness();
+				r.setQuality(CONFIG.get(DEFAULT_FUNCTION).evaluate(r));
+				newClassifier.add(r);
+			}
+		}
+		newClassifier.apply(dataset);
+		CONFIG.set(CLASSIFIER, newClassifier);
 	}
 
 	/**
@@ -159,7 +209,6 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 	 * @return the merged list of rules
 	 */
 	private Rule[] mergeRules(Archive<Rule> archive, Rule[] classifier) {
-
 		Rule[] rules = new Rule[archive.size() + classifier.length];
 		int i = 0;
 		for (Rule r : archive.topN(archive.size())) {
@@ -171,5 +220,107 @@ public class FindRulesActivity extends IterativeActivity<Rule> {
 			i++;
 		}
 		return rules;
+	}
+
+	/**
+	 * Sorts the list of rules given
+	 * 
+	 * @param rules
+	 *            the rules to be sorted
+	 */
+	private void sort(Rule[] rules) {
+		Arrays.sort(rules, new Comparator<Rule>() {
+			public int compare(Rule r1, Rule r2) {
+				return -r1.compareTo(r2);
+			};
+		});
+	}
+
+	/**
+	 * 
+	 * @author James Brookhouse
+	 *
+	 */
+	public class NicheScore {
+
+		private Rule rule;
+
+		private int[] kvalues;
+
+		private int[] classes;
+
+		/**
+		 * 
+		 * @param rule
+		 * @param classes
+		 */
+		public NicheScore(Rule rule, int[] classes) {
+			this.rule = rule;
+			this.classes = classes;
+			this.kvalues = new int[classes.length];
+		}
+
+		/**
+		 * Scans the dataset and checks for coverage of class k
+		 * 
+		 * @param dataset
+		 *            the dataset
+		 * @param instances
+		 *            the instance array to track coverage
+		 * @param k
+		 *            the class to check coverage
+		 */
+		public void ruleCovers(Dataset dataset, Instance[] instances, int k) {
+			int currentConsequent = rule.getConsequent();
+			rule.setConsequent(k);
+			for (int i = 0; i < dataset.size(); i++) {
+				if (instances[i].flag == NOT_COVERED && dataset.get(i)[dataset.get(i).length - 1] == k
+						&& rule.covers(dataset, i)) {
+					kvalues[k]++;
+					instances[i].flag = COVERED;
+				}
+			}
+			rule.setConsequent(currentConsequent);
+		}
+
+		/**
+		 * Gets the adjusted fitness for an attribute
+		 * 
+		 * @param k
+		 *            the class required
+		 * @return the adjusted fitness
+		 */
+		public double adjustedfitness(int k) {
+			return rule.getQuality() * ((double) kvalues[k] / (double) classes[k]);
+		}
+
+		/**
+		 * Gets the rule variant with the best adjusted fitness, if no rule has
+		 * a valid adjusted fitness (one where the fitness is above 0) then null
+		 * is returned instead.
+		 * 
+		 * @return the best rule
+		 */
+		public Rule bestAdjustedfitness() {
+			Rule best = null;
+			double bestscore = 0;
+			for (int i = 0; 0 < classes.length; i++) {
+				if (adjustedfitness(i) > bestscore) {
+					best = rule;
+					best.setConsequent(i);
+					bestscore = adjustedfitness(i);
+				}
+			}
+			return best;
+		}
+
+		/**
+		 * Gets the rule associated with this Niche
+		 * 
+		 * @return the rule
+		 */
+		public Rule getRule() {
+			return rule;
+		}
 	}
 }

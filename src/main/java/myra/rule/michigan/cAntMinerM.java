@@ -24,7 +24,6 @@ import static myra.Dataset.NOT_COVERED;
 import static myra.rule.Assignator.ASSIGNATOR;
 import static myra.rule.irl.PheromonePolicy.DEFAULT_POLICY;
 import static myra.rule.michigan.FindRulesActivity.UPDATE_THRESHOLD;
-import static myra.IterativeActivity.MAX_ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,9 +50,8 @@ import myra.rule.irl.cAntMiner;
 public class cAntMinerM extends cAntMiner {
 
 	// HACK HACK HACK: dirty way to get the current CLASSIFIER to the rest of
-	// the
-	// algorithm, not thread safe at all DO NOT attempt to use the parallel
-	// scheduler.
+	// the algorithm, not thread safe at all DO NOT attempt to use the parallel
+	// scheduler until checking how much will break.
 	public final static ConfigKey<RuleList> CLASSIFIER = new ConfigKey<>();
 
 	@Override
