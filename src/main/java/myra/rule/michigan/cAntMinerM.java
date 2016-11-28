@@ -24,6 +24,7 @@ import static myra.Dataset.NOT_COVERED;
 import static myra.rule.Assignator.ASSIGNATOR;
 import static myra.rule.irl.PheromonePolicy.DEFAULT_POLICY;
 import static myra.rule.michigan.FindRulesActivity.UPDATE_THRESHOLD;
+import static myra.rule.michigan.FindRulesActivity.ITERATION_RULELIST;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,6 +84,7 @@ public class cAntMinerM extends cAntMiner {
 	@Override
 	public Model train(Dataset dataset) {
 		CONFIG.set(CLASSIFIER, new RuleList());
+		CONFIG.set(ITERATION_RULELIST, new RuleList());
 
 		Graph graph = new Graph(dataset);
 		Scheduler<Rule> scheduler = Scheduler.newInstance(1);
