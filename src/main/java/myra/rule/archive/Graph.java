@@ -58,7 +58,27 @@ public class Graph extends myra.rule.Graph {
      */
     public Graph(Dataset dataset) {
         Attribute[] attributes = dataset.attributes();
-        vertices = new Vertex[attributes.length + 1];
+
+
+        // the virtual start vertex
+        int termsCount = 1;
+
+        // the last attribute is the class attribute, so we ignore it
+        for (int i = 0; i < (attributes.length - 1); i++) {
+            switch (attributes[i].getType()) {
+                case NOMINAL:
+                    termsCount += attributes[i].values().length;
+                    break;
+
+                case CONTINUOUS:
+                    termsCount++;
+                    break;
+            }
+        }
+
+
+
+        vertices = new Vertex[termsCount + 1];
         // start and end virtual vertices
         vertices[START_INDEX] = new Vertex(null);
         vertices[END_INDEX] = new Vertex(null);
@@ -68,19 +88,20 @@ public class Graph extends myra.rule.Graph {
         for (int i = 0; i < (attributes.length - 1); i++) {
             switch (attributes[i].getType()) {
             case NOMINAL: {
-                Vertex v =
-                        new Vertex(new Variable.Nominal(attributes[i].size()));
-                v.attribute = i;
+                for (int j = 0; j < attributes[i].length(); j++) {
+                    Vertex v =
+                            new Vertex(new Variable.Nominal(j));
+                    v.attribute = i;
 
-                vertices[index] = v;
-                index++;
-
+                    vertices[index] = v;
+                    index++;
+                }
                 break;
             }
 
             case CONTINUOUS: {
                 Vertex v = new Vertex(new Variable.Continuous(attributes[i]
-                        .lower(), attributes[i].upper()));
+                        .lower(), attributes[i].upper(),i));
                 v.attribute = i;
 
                 vertices[index] = v;
@@ -159,13 +180,13 @@ public class Graph extends myra.rule.Graph {
          * 
          * @return a new condition.
          */
-        public Condition condition(int level) {
+        public Condition condition(int level, Dataset dataset) {
             Condition condition = null;
 
             if (level < archive.length) {
-                condition = archive[level].sample();
+                condition = archive[level].sample(dataset);
             } else {
-                condition = initial.sample();
+                condition = initial.sample(dataset);
             }
 
             condition.attribute = attribute;

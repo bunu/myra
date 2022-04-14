@@ -25,7 +25,7 @@ import myra.classification.hierarchical.AUPRC.Point;
 
 /**
  * @author Fernando Esteban Barril Otero
- */
+**/
 public class AUPRCTest extends TestCase {
     public void testConfusion() {
         Curve curve = new Curve(2);

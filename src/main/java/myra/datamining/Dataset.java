@@ -31,6 +31,7 @@ import java.util.HashSet;
 import myra.classification.Classifier;
 import myra.classification.Label;
 import myra.datamining.Hierarchy.Node;
+import myra.ensemble.bagging.FeatureBagging;
 
 /**
  * This class represents the data.
@@ -98,12 +99,17 @@ public final class Dataset {
      * Instance labels for hierarchical/multi-label problems.
      */
     private Label[] labels;
-
+    
+    /**
+     * Bagging mask
+     */
+    private double[] baggingMasks;
     /**
      * Default constructor.
      */
     public Dataset() {
         attributes = new Attribute[0];
+        baggingMasks = new double[0];
         instances = new double[0];
         distribution = new double[0];
         labels = new Label[0];
@@ -138,6 +144,15 @@ public final class Dataset {
      */
     public Attribute[] attributes() {
         return attributes;
+    }
+    
+    /**
+     * Sets the attributes of the dataset.
+     * 
+     * 
+     */
+    public void setAttributes(Attribute[] a) {
+        attributes = a;
     }
 
     /**
@@ -745,6 +760,23 @@ public final class Dataset {
      */
     public boolean isHierarchical() {
         return (hierarchy != null);
+    }
+    
+    /**
+     * set bagging mask
+     */
+    public void setMask(double[] mask) {
+	this.baggingMasks = mask.clone();
+    }
+    
+    /**
+     * return bagging mask
+     */
+    public double[] getMask() {
+	this.baggingMasks = FeatureBagging.generateBaggingMask(attributes.length);
+	if(this.baggingMasks.length > 0)
+	    return this.baggingMasks;
+	return null;
     }
 
     /**

@@ -63,6 +63,7 @@ import myra.classification.rule.function.MEstimate;
 import myra.classification.rule.function.SensitivitySpecificity;
 import myra.datamining.Dataset;
 import myra.datamining.Model;
+import myra.rule.BacktrackPruner;
 import myra.rule.Heuristic;
 import myra.rule.ListMeasure;
 import myra.rule.ListPruner;
@@ -179,7 +180,8 @@ public class PittsburghMixedAttributeAntMiner extends RuleClassifier {
                                                    "specify the rule pruner %s",
                                                    true,
                                                    "method");
-        pruner.add("single-pass", CONFIG.get(DEFAULT_PRUNER));
+        pruner.add("singlepass", CONFIG.get(DEFAULT_PRUNER));
+        pruner.add("backtrack", new BacktrackPruner());
         pruner.add("none", new Pruner.None());
         options.add(pruner);
 
@@ -256,7 +258,7 @@ public class PittsburghMixedAttributeAntMiner extends RuleClassifier {
 
     @Override
     protected String description() {
-        return "Mixed-Attribute Ant-Miner";
+        return "Pittsburgh Mixed-Attribute Ant-Miner";
     }
 
     /**

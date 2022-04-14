@@ -24,6 +24,7 @@ import static myra.datamining.Attribute.GREATER_THAN;
 import static myra.datamining.Attribute.LESS_THAN_OR_EQUAL_TO;
 
 import myra.datamining.Attribute.Condition;
+import myra.datamining.Dataset;
 import myra.datamining.VariableArchive;
 
 /**
@@ -39,7 +40,7 @@ public abstract class Variable implements Cloneable {
      * 
      * @return a condition to this variable.
      */
-    public abstract Condition sample();
+    public abstract Condition sample(Dataset dataset);
 
     /**
      * Adds the specified condition to the archive.
@@ -83,19 +84,19 @@ public abstract class Variable implements Cloneable {
          * @param upper
          *            upper bound for the sampling procedure.
          */
-        public Continuous(double lower, double upper) {
+        public Continuous(double lower, double upper, int index) {
             operator = new VariableArchive.Categorical(2);
-            value = new VariableArchive.Continuous(lower, upper);
+            value = new VariableArchive.Continuous(lower, upper, index);
         }
 
         @Override
-        public Condition sample() {
+        public Condition sample(Dataset dataset) {
             Condition condition = new Condition();
 
             condition.relation =
-                    (operator.sample() == 0) ? LESS_THAN_OR_EQUAL_TO
+                    (operator.sample(dataset) == 0) ? LESS_THAN_OR_EQUAL_TO
                             : GREATER_THAN;
-            condition.value[0] = value.sample();
+            condition.value[0] = value.sample(dataset);
 
             return condition;
         }
@@ -126,37 +127,37 @@ public abstract class Variable implements Cloneable {
         /**
          * Value archive.
          */
-        private VariableArchive.Categorical value;
+        private int value;
 
         /**
          * Default constructor.
          * 
-         * @param length
-         *            the number of different nominal values.
+         * @param value
+         *            the value of the nominal attribute.
          */
-        public Nominal(int length) {
-            value = new VariableArchive.Categorical(length);
+        public Nominal(int value) {
+            this.value = value;
         }
 
         @Override
-        public Condition sample() {
+        public Condition sample(Dataset dataset) {
             Condition condition = new Condition();
             condition.relation = EQUAL_TO;
-            condition.value[0] = value.sample();
+            condition.value[0] = value;
 
             return condition;
         }
 
         @Override
         public void add(Condition condition, double quality) {
-            value.add(Integer.valueOf((int) condition.value[0]), quality);
-            value.update();
+            //value.add(Integer.valueOf((int) condition.value[0]), quality);
+            //value.update();
         }
 
         @Override
         public Nominal clone() {
             Nominal clone = (Nominal) super.clone();
-            clone.value = value.clone();
+            clone.value = value;//.clone();
             return clone;
         }
     }

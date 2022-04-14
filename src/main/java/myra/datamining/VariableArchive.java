@@ -27,6 +27,7 @@ import static myra.datamining.Algorithm.RANDOM_GENERATOR;
 import myra.Archive.DefaultArchive;
 import myra.Config.ConfigKey;
 import myra.Weighable;
+import myra.datamining.Dataset.Instance;
 
 /**
  * This class represents a local archive&mdash;i.e., a variable of a solution,
@@ -65,7 +66,7 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
      * 
      * @return an attribute condition.
      */
-    public abstract E sample();
+    public abstract E sample(Dataset dataset);
 
     /**
      * Adds the specified value to the archive.
@@ -105,6 +106,11 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
          * The upper bound of values in the attribute domain.
          */
         private double upper;
+        
+        /**
+         * The index of the attribute in the dataset.
+         */
+        private int index;
 
         /**
          * Default constructor.
@@ -115,9 +121,10 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
          *            the upper bound of values in the attribute domain.
          * 
          */
-        public Continuous(double lower, double upper) {
+        public Continuous(double lower, double upper, int index) {
             this.lower = lower;
             this.upper = upper;
+            this.index = index;
 
             precision = (int) Math.pow(10, CONFIG.get(PRECISION));
             archive =
@@ -130,13 +137,16 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
         }
 
         @Override
-        public Double sample() {
+        public Double sample(Dataset dataset) {
             double sampled = 0.0;
 
             if (!archive.isFull()) {
-                sampled = (CONFIG.get(RANDOM_GENERATOR).nextDouble()
-                        * (upper - lower)) + lower;
+        	
+        	double[] instance = dataset.get(CONFIG.get(RANDOM_GENERATOR).nextInt(dataset.size()));
+                sampled = instance[index];
+                	
             } else {
+        	
                 // roulette selection based on the weight of each value
 
                 Comparable<Entry<Double>>[] solutions = archive.solutions();
@@ -164,7 +174,7 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
 
                 sampled = value(selected);
             }
-
+            
             sampled = (int) (sampled * precision);
             return sampled / precision;
         }
@@ -202,7 +212,7 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
 
         @Override
         public VariableArchive.Continuous clone() {
-            return new VariableArchive.Continuous(lower, upper);
+            return new VariableArchive.Continuous(lower, upper, index);
         }
     }
 
@@ -239,7 +249,7 @@ public abstract class VariableArchive<E extends Number & Comparable<E>>
         }
 
         @Override
-        public Integer sample() {
+        public Integer sample(Dataset dataset) {
             if (!archive.isFull()) {
                 // random sampling, since archive is not complete
                 return CONFIG.get(RANDOM_GENERATOR).nextInt(length);

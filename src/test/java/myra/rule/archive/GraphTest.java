@@ -56,6 +56,6 @@ public class GraphTest extends TestCase {
         assertEquals(6, graph.size());
 
         Graph.Vertex vertex = graph.vertices()[2];
-        assertNotNull(vertex.initial.sample());
+        assertNotNull(vertex.initial.sample(dataset));
     }
 }
