@@ -65,6 +65,7 @@ import myra.classification.rule.ListAccuracy;
 import myra.classification.rule.MajorityAssignator;
 import myra.classification.rule.PessimisticAccuracy;
 import myra.classification.rule.RuleClassifier;
+import myra.classification.rule.SinglePassPruner;
 import myra.classification.rule.function.Laplace;
 import myra.classification.rule.function.MEstimate;
 import myra.classification.rule.function.SensitivitySpecificity;
@@ -131,7 +132,7 @@ public class PittsburghContinuousAntMiner extends RuleClassifier {
 
         // default configuration values
 
-        CONFIG.set(COLONY_SIZE, 5);
+        CONFIG.set(COLONY_SIZE, 10);
         CONFIG.set(MAX_ITERATIONS, 500);
         CONFIG.set(MINIMUM_CASES, 10);
         CONFIG.set(EVAPORATION_FACTOR, 0.9);

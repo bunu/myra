@@ -145,7 +145,7 @@ public class ArchiveRuleFactory extends LevelRuleFactory
             }
 
             Vertex vertex = graph.vertices()[selected];
-            Term term = new Term(selected, vertex.condition(level));
+            Term term = new Term(selected, vertex.condition(level,dataset));
             rule.push(term);
 
             previous = selected;
@@ -154,7 +154,9 @@ public class ArchiveRuleFactory extends LevelRuleFactory
         }
 
         rule.compact();
-
+        
+        rule.apply(dataset, instances);
+        
         return rule;
     }
 

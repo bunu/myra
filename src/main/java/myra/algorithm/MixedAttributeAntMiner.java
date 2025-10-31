@@ -20,6 +20,7 @@
 package myra.algorithm;
 
 import static myra.Archive.ARCHIVE_SIZE;
+import static myra.Scheduler.COLONY_SIZE;
 import static myra.Archive.DEFAULT_Q;
 import static myra.Archive.Q;
 import static myra.Config.CONFIG;
@@ -33,6 +34,7 @@ import static myra.rule.pittsburgh.LevelPheromonePolicy.EVAPORATION_FACTOR;
 import static myra.rule.pittsburgh.LevelPheromonePolicy.P_BEST;
 import static myra.rule.irl.RuleFactory.DEFAULT_FACTORY;
 import static myra.rule.irl.PheromonePolicy.DEFAULT_POLICY;
+import static myra.IterativeActivity.MAX_ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +45,7 @@ import myra.Option.IntegerOption;
 import myra.classification.ClassificationModel;
 import myra.classification.rule.SinglePassPruner;
 import myra.datamining.Dataset;
+import myra.rule.BacktrackPruner;
 import myra.rule.Heuristic;
 import myra.rule.Pruner;
 import myra.rule.archive.ArchivePheromonePolicy;
@@ -79,7 +82,8 @@ public class MixedAttributeAntMiner extends AntMiner {
         super.defaults();
 
         // configuration not set via command line
-
+        CONFIG.set(COLONY_SIZE, 5);
+        CONFIG.set(MAX_ITERATIONS, 1000);
         CONFIG.set(P_BEST, 0.05);
         CONFIG.set(DEFAULT_HEURISTIC, new Heuristic.None());
         CONFIG.set(DEFAULT_FACTORY, new ArchiveRuleFactory());
@@ -89,8 +93,8 @@ public class MixedAttributeAntMiner extends AntMiner {
         // default configuration values
 
         CONFIG.set(EVAPORATION_FACTOR, 0.9);
-        CONFIG.set(DEFAULT_PRUNER, new SinglePassPruner());
-        CONFIG.set(ARCHIVE_SIZE, 20);
+        CONFIG.set(DEFAULT_PRUNER, new BacktrackPruner());
+        CONFIG.set(ARCHIVE_SIZE, 39);
         CONFIG.set(Q, DEFAULT_Q);
         CONFIG.set(CONVERGENCE_SPEED, DEFAULT_CONVERGENCE_SPEED);
     }

@@ -20,6 +20,7 @@
 package myra.classification.rule;
 
 import static myra.Config.CONFIG;
+import static myra.datamining.Algorithm.RANDOM_SEED;
 import static myra.datamining.Dataset.COVERED;
 import static myra.datamining.Dataset.NOT_COVERED;
 import static myra.datamining.Dataset.RULE_COVERED;
@@ -184,10 +185,11 @@ public class SinglePassPruner extends Pruner {
                        Rule rule) {
         // reset the covered instances
         Instance.mark(instances, RULE_COVERED, NOT_COVERED);
-
-        for (int index : coverage.instances) {
-            instances[index].flag = RULE_COVERED;
-        }
+      
+            for (int index : coverage.instances) {
+        	instances[index].flag = RULE_COVERED;
+            }
+       
 
         if (!dataset.isHierarchical()) {
             ClassificationRule r = (ClassificationRule) rule;
