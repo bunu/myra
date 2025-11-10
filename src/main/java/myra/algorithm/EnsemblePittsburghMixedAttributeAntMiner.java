@@ -52,16 +52,17 @@ import myra.rule.archive.Graph;
 import myra.rule.pittsburgh.FindRuleListActivity;
 
 /**
- * This class represents the <code><i>ec</i>Ant-Miner<sub>PB + HMA</sub></code>
+ * This class represents the <code><i>e</i>Ant-Miner<sub>PB + HMA</sub></code>
  * implementation, as described in the paper:
  *
  * <pre>
- * &#64;ARTICLE{Brookhouse2025ensemble,
- *    author  = {J. Brookhouse and A. Helal and F.E.B. Otero},
- *    title   = {An Ensemble Ant Colony Optimisation Algorithm with a Hybrid Pheromone Model for Learning Rule Lists},
- *    journal = {Genetic and Evolutionary Computation Conference (GECCO '25)},
- *    year    = {2025},
- *    pages   = {1--9}
+ * &#064;INPROCEEDINGS{Brookhouse2025ensemble
+ * author  = {J. Brookhouse and A. Helal and F.E.B. Otero},
+ * title   = {An Ensemble Ant Colony Optimisation Algorithm with a Hybrid Pheromone Model for Learning Rule Lists},
+ * booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference (GECCO '25)},
+ * publisher = {Association for Computing Machinery}
+ * year    = {2025},
+ * pages   = {1532--1539}
  * }
  * </pre>
  *

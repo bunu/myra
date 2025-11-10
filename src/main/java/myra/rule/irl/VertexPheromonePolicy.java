@@ -74,7 +74,7 @@ public final class VertexPheromonePolicy implements PheromonePolicy {
             matrix[terms[i].index()][0].set(0, value + (value * q));
         }
 
-        // normilises the pheromone values (it has the effect of
+        // Normalises the pheromone values (it has the effect of
         // evaporation for vertices that have not being updated)
 
         double total = 0.0;

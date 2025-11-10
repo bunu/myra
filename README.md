@@ -31,7 +31,7 @@ The following algorithms are implemented:
 Main class: myra.algorithm.AntMiner
 ```
 
-The first rule induction ACO classification algorithm. Ant-Miner uses a sequentical covering strategy combined with an ACO search to create a list of rules. Ant-Miner only supports categorical attributes, continuous attributes need to be discretised in a pre-processing step.
+The first rule induction ACO classification algorithm. Ant-Miner uses a sequential covering strategy combined with an ACO search to create a list of rules. Ant-Miner only supports categorical attributes, continuous attributes need to be discretised in a pre-processing step.
 
 ##### Continuous Ant-Miner (*c*Ant-Miner)
 ```
@@ -66,24 +66,29 @@ A decision tree induction algorithm that uses an ACO procedure to creates decisi
 Main class: myra.algorithm.AntMinerReg
 ```
 
-The first rule induction ACO regression algorithm. Ant-Miner-Reg uses a sequentical covering strategy combined with an ACO search to create a list of regression rules.
+The first rule induction ACO regression algorithm. Ant-Miner-Reg uses a sequential covering strategy combined with an ACO search to create a list of regression rules.
 
 ##### Hierarchical Multi-Label Ant-Miner (*hm*Ant-Miner)
 ```
 Main class: myra.algorithm.HierarchicalMultiLabelAntMiner
 ```
 
-*hm*Ant-Miner is the first Ant-Miner variation for hierarchical multi-label classification problems. *hm*Ant-Miner uses a sequentical covering strategy combined with an ACO search to create a list of hierarchical classification rules that predict multiple class labels from a hierarchy.
+*hm*Ant-Miner is the first Ant-Miner variation for hierarchical multi-label classification problems. *hm*Ant-Miner uses a sequential covering strategy combined with an ACO search to create a list of hierarchical classification rules that predict multiple class labels from a hierarchy.
+
+#### *e*Ant-Miner<sub>PB+HMA</sub>
+```
+Main class: myra.algorithm.EnsemblePittsburghMixedAttributeAntMiner
+```
 
 ### Running the algorithms
 
-All algorihtms can be used in the command line:
+All algorithms can be used in the command line:
 
 ```
 java -cp myra-<version>.jar <main class> -f <arff training file>
 ```
 
-where `<version>` is MYRA version number (e.g., `5.0`), `<main class>` is the main class name of the algorithm and `<aff training file>` is the path to the ARFF file to be used as training data. The minimum requirement to run an algorihtm is a training file. If no training file is specified, a list of options is printed:
+where `<version>` is MYRA version number (e.g., `5.0`), `<main class>` is the main class name of the algorithm and `<aff training file>` is the path to the ARFF file to be used as training data. The minimum requirement to run an algorithm is a training file. If no training file is specified, a list of options is printed:
 
 ```
 [febo@uok myra]$ java -cp myra-4.5.jar myra.algorithm.ContinuousAntMiner
@@ -129,7 +134,7 @@ The following options are available:
   --parallel <cores>    enable parallel execution in multiple cores; if no cores 
                         are specified, use all available cores 
 ```
-Usinng command-line options you can tweak the parameters of an algorithm. Note that when running the algorithm in parallel (`--parallel` option), there is no guarantee that it will have the same behaviour even if the same seed value is used (`-s` option), since the thread allocation is not controlled by the code.
+Using command-line options you can tweak the parameters of an algorithm. Note that when running the algorithm in parallel (`--parallel` option), there is no guarantee that it will have the same behaviour even if the same seed value is used (`-s` option), since the thread allocation is not controlled by the code.
 
 ### Citation Policy
 
@@ -287,4 +292,17 @@ If you also would like to make a reference to the MYRA repository, please includ
     number  = {3},
     pages   = {165–-181}
 }
+```
+
+#### Ensemble Ant-Miner (*e*Ant-Miner<sub>PB+HMA</sub>)
+* J. Brookhouse, A. Helal and F.E.B. Otero. An Ensemble Ant Colony Optimisation Algorithm with a Hybrid Pheromone Model for Learning Rule Lists. In: Proceedings of the Genetic and Evolutionary Computation Conference (GECCO '25), pp. 1532&ndash;1539, 2025.
+```
+ @INPROCEEDINGS{Brookhouse2025ensemble,
+    author  = {J. Brookhouse and A. Helal and F.E.B. Otero},
+    title   = {An Ensemble Ant Colony Optimisation Algorithm with a Hybrid Pheromone Model for Learning Rule Lists},
+    booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference (GECCO '25)},
+    publisher = {Association for Computing Machinery}
+    year    = {2025},
+    pages   = {1532--1539}
+ }
 ```
